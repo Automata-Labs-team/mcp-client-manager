@@ -1,0 +1,64 @@
+{
+  "name": "@automata-labs/mcp-client-manager",
+  "version": "1.0.0",
+  "description": "A client manager for the Model Context Protocol (MCP) that handles multiple connections and provides a simple unified API",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "webpack && tsc --emitDeclarationOnly",
+    "build:tsc": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "client-manager",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Automata-Labs-team/mcp-client-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Automata-Labs-team/mcp-client-manager/issues"
+  },
+  "homepage": "https://github.com/Automata-Labs-team/mcp-client-manager",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/debug": "^4.1.12",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint": "^8.40.0",
+    "jest": "^29.5.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.0.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1"
+  },
+  "dependencies": {
+    "debug": "^4.3.4"
+  }
+}
