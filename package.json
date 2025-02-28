@@ -1,5 +1,5 @@
 {
-  "name": "@automata-labs/mcp-client-manager",
+  "name": "@automatalabs/mcp-client-manager",
   "version": "1.0.0",
   "description": "A client manager for the Model Context Protocol (MCP) that handles multiple connections and provides a simple unified API",
   "type": "module",
@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Automata-Labs-team/mcp-client-manager.git"
+    "url": "git+https://github.com/Automata-Labs-team/mcp-client-manager.git"
   },
   "bugs": {
     "url": "https://github.com/Automata-Labs-team/mcp-client-manager/issues"

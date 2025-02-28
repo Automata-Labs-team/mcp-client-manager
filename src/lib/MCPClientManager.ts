@@ -423,9 +423,9 @@ export class MCPClientManager extends EventEmitter {
       try {
         this.logger('Listing prompts from %s', clientInfo.serverName);
         const prompts = await clientInfo.client.listPrompts({ timeout: effectiveTimeout });
-        if (Array.isArray(prompts)) {
-          this.logger('Found %d prompts from %s', prompts.length, clientInfo.serverName);
-          allPrompts.push(...prompts);
+        if (Array.isArray(prompts.prompts)) {
+          this.logger('Found %d prompts from %s', prompts.prompts.length, clientInfo.serverName);
+          allPrompts.push(...prompts.prompts);
         }
       } catch (error) {
         const typedError = error instanceof Error ? error : new Error(String(error));
@@ -530,9 +530,9 @@ export class MCPClientManager extends EventEmitter {
       try {
         this.logger('Listing resources from %s', clientInfo.serverName);
         const resources = await clientInfo.client.listResources({ timeout: effectiveTimeout });
-        if (Array.isArray(resources)) {
-          this.logger('Found %d resources from %s', resources.length, clientInfo.serverName);
-          allResources.push(...resources);
+        if (Array.isArray(resources.resources)) {
+          this.logger('Found %d resources from %s', resources.resources.length, clientInfo.serverName);
+          allResources.push(...resources.resources);
         }
       } catch (error) {
         const typedError = error instanceof Error ? error : new Error(String(error));
@@ -721,5 +721,153 @@ export class MCPClientManager extends EventEmitter {
       errors.map(e => e.error), 
       `Tool "${toolName}" not found in any client`
     );
+  }
+
+  /**
+   * Gets tools from a specific client
+   * @param clientId The client identifier
+   * @param timeout Optional timeout in milliseconds
+   * @returns List of tools from the specified client
+   * @throws Error if the client isn't found or connected
+   */
+  async getClientTools(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+    this.logger('Getting tools from client %s', clientId);
+    
+    const clientInfo = this.clients.get(clientId);
+    if (!clientInfo) {
+      const error = new Error(`Client with ID "${clientId}" not found`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    if (!clientInfo.connected) {
+      const error = new Error(`Client with ID "${clientId}" is not connected`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    try {
+      // Use provided timeout or default
+      const effectiveTimeout = timeout || this.config.defaultTimeout;
+      this.logger('Listing tools from %s', clientInfo.serverName);
+      
+      const tools = await clientInfo.client.listTools({ timeout: effectiveTimeout });
+      
+      if (tools && Array.isArray(tools.tools)) {
+        this.logger('Found %d tools from %s', tools.tools.length, clientInfo.serverName);
+        return tools.tools;
+      }
+      
+      return [];
+    } catch (error) {
+      const typedError = error instanceof Error ? error : new Error(String(error));
+      clientInfo.error = typedError;
+      this.logger('Error listing tools from %s: %O', clientInfo.serverName, typedError);
+      this.emit('operationError', { 
+        operation: 'getClientTools', 
+        clientId, 
+        serverName: clientInfo.serverName, 
+        error: typedError 
+      });
+      throw typedError;
+    }
+  }
+  
+  /**
+   * Gets resources from a specific client
+   * @param clientId The client identifier
+   * @param timeout Optional timeout in milliseconds
+   * @returns List of resources from the specified client
+   * @throws Error if the client isn't found or connected
+   */
+  async getClientResources(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+    this.logger('Getting resources from client %s', clientId);
+    
+    const clientInfo = this.clients.get(clientId);
+    if (!clientInfo) {
+      const error = new Error(`Client with ID "${clientId}" not found`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    if (!clientInfo.connected) {
+      const error = new Error(`Client with ID "${clientId}" is not connected`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    try {
+      // Use provided timeout or default
+      const effectiveTimeout = timeout || this.config.defaultTimeout;
+      this.logger('Listing resources from %s', clientInfo.serverName);
+      
+      const resources = await clientInfo.client.listResources({ timeout: effectiveTimeout });
+      if (Array.isArray(resources.resources)) {
+        this.logger('Found %d resources from %s', resources.resources.length, clientInfo.serverName);
+        return resources.resources;
+      }
+      
+      return [];
+    } catch (error) {
+      const typedError = error instanceof Error ? error : new Error(String(error));
+      clientInfo.error = typedError;
+      this.logger('Error listing resources from %s: %O', clientInfo.serverName, typedError);
+      this.emit('operationError', { 
+        operation: 'getClientResources', 
+        clientId, 
+        serverName: clientInfo.serverName, 
+        error: typedError 
+      });
+      throw typedError;
+    }
+  }
+  
+  /**
+   * Gets prompts from a specific client
+   * @param clientId The client identifier
+   * @param timeout Optional timeout in milliseconds
+   * @returns List of prompts from the specified client
+   * @throws Error if the client isn't found or connected
+   */
+  async getClientPrompts(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+    this.logger('Getting prompts from client %s', clientId);
+    
+    const clientInfo = this.clients.get(clientId);
+    if (!clientInfo) {
+      const error = new Error(`Client with ID "${clientId}" not found`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    if (!clientInfo.connected) {
+      const error = new Error(`Client with ID "${clientId}" is not connected`);
+      this.logger('Error: %O', error);
+      throw error;
+    }
+    
+    try {
+      // Use provided timeout or default
+      const effectiveTimeout = timeout || this.config.defaultTimeout;
+      this.logger('Listing prompts from %s', clientInfo.serverName);
+      
+      const prompts = await clientInfo.client.listPrompts({ timeout: effectiveTimeout });
+      if (Array.isArray(prompts.prompts)) {
+        this.logger('Found %d prompts from %s', prompts.prompts.length, clientInfo.serverName);
+        return prompts.prompts;
+      }
+      
+      return [];
+    } catch (error) {
+      const typedError = error instanceof Error ? error : new Error(String(error));
+      clientInfo.error = typedError;
+      this.logger('Error listing prompts from %s: %O', clientInfo.serverName, typedError);
+      this.emit('operationError', { 
+        operation: 'getClientPrompts', 
+        clientId, 
+        serverName: clientInfo.serverName, 
+        error: typedError 
+      });
+      throw typedError;
+    }
   }
 } 
