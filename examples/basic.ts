@@ -51,7 +51,7 @@ async function main() {
     });
 
     // Connect to the server
-    const clientId = await manager.addServer(transport, 'sample-server');
+    const clientId = await manager.addServer(transport, 'sample server');
     const clientId2 = await manager.addServer(transport2, 'sample-server-filesystem');
     console.log(`Connected to server with client ID: ${clientId}`);
     console.log(`Connected to server with client ID: ${clientId2}`);

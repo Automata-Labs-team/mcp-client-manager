@@ -1,5 +1,5 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index";
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+// import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { EventEmitter } from "events";
 import { 
   ClientIdentifier, 
@@ -9,7 +9,15 @@ import {
   PromptParams,
   ToolCallParams,
   ClientConfig,
-  ToolResponse
+  ToolResponse,
+  Tool,
+  Resource,
+  Prompt,
+  ReadResourceResult,
+  GetPromptResultSchema,
+  GetPromptResult,
+  ListPromptsResult,
+  Transport
 } from "./types";
 import Debug from "debug";
 
@@ -106,7 +114,7 @@ export class MCPClientManager extends EventEmitter {
     
     // Create client info with the provided name
     const clientInfo = {
-      name: `${serverName}-client`,
+      name: `${serverName}`,
       version: "1.0.0"
     };
     
@@ -257,21 +265,16 @@ export class MCPClientManager extends EventEmitter {
   /**
    * Gets client info by ID
    * @param id The client identifier
-   * @returns The ClientInfo object or undefined if not found
+   * @returns The complete ClientInfo object or undefined if not found
    */
-  getClientInfo(id: ClientIdentifier): Omit<ClientInfo, 'client'> | undefined {
+  getClientInfo(id: ClientIdentifier): ClientInfo | undefined {
     const clientInfo = this.clients.get(id);
     if (!clientInfo) {
       return undefined;
     }
     
-    // Return a copy without exposing the client instance directly
-    return {
-      serverName: clientInfo.serverName,
-      transport: clientInfo.transport,
-      connected: clientInfo.connected,
-      error: clientInfo.error
-    };
+    // Return the complete client info, including the client instance
+    return clientInfo;
   }
 
   /**
@@ -310,7 +313,7 @@ export class MCPClientManager extends EventEmitter {
     try {
       // Create a new client with the same info
       const client = new Client(
-        { name: `${clientInfo.serverName}-client`, version: "1.0.0" }, 
+        { name: `${clientInfo.serverName}`, version: "1.0.0" }, 
         DEFAULT_CLIENT_CONFIG
       );
       
@@ -405,10 +408,10 @@ export class MCPClientManager extends EventEmitter {
    * @param timeout Optional timeout in milliseconds
    * @returns Combined list of prompts
    */
-  async listPrompts(timeout?: number): Promise<unknown[]> {
+  async listPrompts(timeout?: number): Promise<Prompt[]> {
     this.logger('Listing prompts from all clients');
     
-    const allPrompts: unknown[] = [];
+    const allPrompts: Prompt[] = [];
     const errors: Array<{ clientId: string; error: Error }> = [];
     
     // Use provided timeout or default
@@ -458,7 +461,7 @@ export class MCPClientManager extends EventEmitter {
    * @param timeout Optional timeout in milliseconds
    * @returns The prompt or throws an error if not found
    */
-  async getPrompt(promptName: string, args: PromptParams = {}, timeout?: number): Promise<unknown> {
+  async getPrompt(promptName: string, args: PromptParams = {}, timeout?: number): Promise<GetPromptResult> {
     this.logger('Getting prompt %s with args %O', promptName, args);
     
     const errors: Array<{ clientId: string; error: Error }> = [];
@@ -512,10 +515,10 @@ export class MCPClientManager extends EventEmitter {
    * @param timeout Optional timeout in milliseconds
    * @returns Combined list of resources
    */
-  async listResources(timeout?: number): Promise<unknown[]> {
+  async listResources(timeout?: number): Promise<Resource[]> {
     this.logger('Listing resources from all clients');
     
-    const allResources: unknown[] = [];
+    const allResources: Resource[] = [];
     const errors: Array<{ clientId: string; error: Error }> = [];
     
     // Use provided timeout or default
@@ -564,7 +567,7 @@ export class MCPClientManager extends EventEmitter {
    * @param timeout Optional timeout in milliseconds
    * @returns The resource or throws an error if not found
    */
-  async readResource(resourceUri: string, timeout?: number): Promise<unknown> {
+  async readResource(resourceUri: string, timeout?: number): Promise<ReadResourceResult> {
     this.logger('Reading resource %s', resourceUri);
     
     const errors: Array<{ clientId: string; error: Error }> = [];
@@ -616,10 +619,10 @@ export class MCPClientManager extends EventEmitter {
    * @param timeout Optional timeout in milliseconds
    * @returns Combined list of tools
    */
-  async listTools(timeout?: number): Promise<unknown[]> {
+  async listTools(timeout?: number): Promise<Tool[]> {
     this.logger('Listing tools from all clients');
     
-    const allTools: unknown[] = [];
+    const allTools: Tool[] = [];
     const errors: Array<{ clientId: string; error: Error }> = [];
     
     // Use provided timeout or default
@@ -730,7 +733,7 @@ export class MCPClientManager extends EventEmitter {
    * @returns List of tools from the specified client
    * @throws Error if the client isn't found or connected
    */
-  async getClientTools(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+  async getClientTools(clientId: ClientIdentifier, timeout?: number): Promise<Tool[]> {
     this.logger('Getting tools from client %s', clientId);
     
     const clientInfo = this.clients.get(clientId);
@@ -780,7 +783,7 @@ export class MCPClientManager extends EventEmitter {
    * @returns List of resources from the specified client
    * @throws Error if the client isn't found or connected
    */
-  async getClientResources(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+  async getClientResources(clientId: ClientIdentifier, timeout?: number): Promise<Resource[]> {
     this.logger('Getting resources from client %s', clientId);
     
     const clientInfo = this.clients.get(clientId);
@@ -829,7 +832,7 @@ export class MCPClientManager extends EventEmitter {
    * @returns List of prompts from the specified client
    * @throws Error if the client isn't found or connected
    */
-  async getClientPrompts(clientId: ClientIdentifier, timeout?: number): Promise<unknown[]> {
+  async getClientPrompts(clientId: ClientIdentifier, timeout?: number): Promise<Prompt[]> {
     this.logger('Getting prompts from client %s', clientId);
     
     const clientInfo = this.clients.get(clientId);
@@ -868,6 +871,44 @@ export class MCPClientManager extends EventEmitter {
         error: typedError 
       });
       throw typedError;
+    }
+  }
+
+  /**
+   * Disconnects a client without removing it from the manager
+   * @param clientId The client identifier to disconnect
+   * @returns Promise resolving to true if successfully disconnected, or false if client was already disconnected or not found
+   */
+  async disconnectClient(clientId: ClientIdentifier): Promise<boolean> {
+    this.logger('Disconnecting client: %s', clientId);
+    
+    const clientInfo = this.clients.get(clientId);
+    if (!clientInfo) {
+      this.logger('Client not found: %s', clientId);
+      return false;
+    }
+
+    if (!clientInfo.connected) {
+      this.logger('Client already disconnected: %s', clientId);
+      return false;
+    }
+
+    try {
+      // Close the transport
+      await clientInfo.transport.close();
+      
+      // Update the client info
+      clientInfo.connected = false;
+      
+      this.logger('Client disconnected: %s', clientId);
+      this.emit('clientDisconnected', { clientId, serverName: clientInfo.serverName });
+      return true;
+    } catch (error) {
+      const typedError = error instanceof Error ? error : new Error(String(error));
+      this.logger('Error disconnecting client %s: %O', clientId, typedError);
+      clientInfo.error = typedError;
+      this.emit('disconnectionError', { clientId, error: typedError });
+      return false;
     }
   }
 } 

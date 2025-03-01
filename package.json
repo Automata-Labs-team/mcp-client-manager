@@ -1,6 +1,6 @@
 {
   "name": "@automatalabs/mcp-client-manager",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "A client manager for the Model Context Protocol (MCP) that handles multiple connections and provides a simple unified API",
   "type": "module",
   "main": "dist/index.js",
@@ -40,7 +40,6 @@
   },
   "homepage": "https://github.com/Automata-Labs-team/mcp-client-manager",
   "devDependencies": {
-    "@types/bun": "latest",
     "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.0",
     "@types/node": "^18.0.0",

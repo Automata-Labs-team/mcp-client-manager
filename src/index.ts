@@ -9,7 +9,7 @@
  */
 
 // Re-export the Transport type from the SDK
-export { Transport } from "@modelcontextprotocol/sdk/shared/transport";
+// export { Transport } from "@modelcontextprotocol/sdk/shared/transport";
 
 // Export the main class
 export { MCPClientManager } from './lib/MCPClientManager';

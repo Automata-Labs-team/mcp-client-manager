@@ -1,4 +1,4 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport";
 
 /**
@@ -6,12 +6,18 @@ import { Transport } from "@modelcontextprotocol/sdk/shared/transport";
  */
 export type ClientIdentifier = string;
 
-/**
- * Re-export the Transport type from the SDK
- */
-export { Transport };
+export {
+  type Tool,
+  type Resource,
+  type Prompt,
+  type ReadResourceResult,
+  type GetPromptResultSchema,
+  type GetPromptResult,
+  type ListPromptsResult,
+} from "@modelcontextprotocol/sdk/types.js";
 
-export * from "@modelcontextprotocol/sdk/types";
+export { type Client } from "@modelcontextprotocol/sdk/client/index.js";
+export { type Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 
 /**
  * Client transport interface that extends SDK Transport
@@ -106,6 +112,8 @@ export interface MCPClientManagerEvents {
   reconnectionError: { clientId: ClientIdentifier; error: Error };
   closeError: { clientId: ClientIdentifier; error: Error };
   clientRemoved: { clientId: ClientIdentifier; serverName: string };
+  clientDisconnected: { clientId: ClientIdentifier; serverName: string };
+  disconnectionError: { clientId: ClientIdentifier; error: Error };
   operationError: { 
     operation: string; 
     clientId: ClientIdentifier; 
